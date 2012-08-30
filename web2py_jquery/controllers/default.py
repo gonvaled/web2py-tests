@@ -1,5 +1,8 @@
 #coding: utf8
 
+UNSELECTED_ID   = '__unselected__'
+UNSELECTED_TEXT = T('Please select')
+
 countries = {
     'DE': 'Germany',
     'ES': 'Spain',
@@ -26,31 +29,43 @@ map_countries_cities_to_tels = {
     ('DE', MUN_ID) : [ '+4997423432', '+49973223432' ],
     }
 
-def get_select(el_id, options, value, f = None, target = None, sources = None):
+# The ids of the html elements
+COUNTRY_ID    = 'country'
+CITY_ID       = 'city'
+CITIES_DIV_ID = 'citiesdiv'
+PHONE_ID      = 'phone'
+PHONES_DIV_ID = 'phonesdiv'
+
+def get_select(el_id, options, value, f = None, target = None, sources = None, clear_target = None):
     try:
         opts     = [OPTION(v, _value=k) for k, v in options.items()]
     except:
         opts     = [OPTION(v, _value=v) for v in options]
+    opts.append(OPTION(UNSELECTED_TEXT, _value=UNSELECTED_ID))
     if f != None:
         sources  = ["'%s'" % source for source in sources]
         sources  = "[%s]" % (",".join(sources))
         onchange = "ajax('%s',%s,'%s');" % (URL(f), sources, target)
+        if clear_target:
+            reset_select = """$('#%s').empty().append('<option selected="selected" value="%s">%s</option>');""" % (clear_target, UNSELECTED_ID, UNSELECTED_TEXT)
+            onchange += reset_select
     else:
         onchange = None
+    if not value: value = UNSELECTED_ID
     return SELECT(_id       = el_id,
                   _name     = el_id,  # I do not know why, but I need this
                   value     = value,
                   _onchange = onchange,
                   *opts)
 
-def countries_select(selected_country, countries):
-    return get_select(value = selected_country, options = countries, el_id = 'country', f = 'get_cities', target = 'citiesdiv',  sources = ['country'])
+def countries_select(countries, selected_country = None):
+    return get_select(value = selected_country, options = countries, el_id = COUNTRY_ID, f = 'get_cities', target = CITIES_DIV_ID, sources = [COUNTRY_ID], clear_target = PHONE_ID)
 
-def cities_select(selected_city, cities):
-    return get_select(value = selected_city, options = cities, el_id = 'city', f = 'get_tels', target = 'phonesdiv', sources = ['country', 'city'])
+def cities_select(cities, selected_city = None ):
+    return get_select(value = selected_city, options = cities, el_id = CITY_ID, f = 'get_tels', target = PHONES_DIV_ID, sources = [COUNTRY_ID, CITY_ID])
 
-def phones_select(selected_phone, phones):
-    return get_select(value = selected_phone, options = phones, el_id = 'phone')
+def phones_select(phones, selected_phone = None):
+    return get_select(value = selected_phone, options = phones, el_id = PHONE_ID)
 
 def index():
     selected_country = 'ES'
@@ -58,21 +73,19 @@ def index():
     selected_city    = cities.keys()[0] # TODO: this is not deterministic
     phones           = map_countries_cities_to_tels[(selected_country, selected_city)]
     selected_phone   = phones[0]
-    form = FORM(countries_select(selected_country, countries),
-                DIV(cities_select(selected_city, cities), _id='citiesdiv'),
-                DIV(phones_select(selected_phone, phones), _id='phonesdiv')
+    form = FORM(countries_select(countries, selected_country),
+                DIV(cities_select(cities, selected_city), _id=CITIES_DIV_ID),
+                DIV(phones_select(phones, selected_phone), _id=PHONES_DIV_ID)
                 )
     return dict(form = form)
 
 def get_cities():
     cities = map_countries_to_cities[request.vars.country]
-    selected_city = cities.keys()[0] # TODO: this is not deterministic
-    return cities_select(selected_city, cities).xml()
+    return cities_select(cities).xml()
 
 def get_tels():
     country = request.vars.country
     city    = request.vars.city
     key     = (country, city)
     phones  = map_countries_cities_to_tels[key]
-    selected_phone = phones[0]
-    return phones_select(selected_phone, phones).xml()
+    return phones_select(phones).xml()
