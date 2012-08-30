@@ -29,6 +29,14 @@ map_countries_cities_to_tels = {
     ('DE', MUN_ID) : [ '+4997423432', '+49973223432' ],
     }
 
+class Data:
+
+    def get_cities(self, country):
+        return map_countries_to_cities.get(country)
+
+    def get_phones(self, country, city):
+        return map_countries_cities_to_tels.get((country, city))
+
 # The ids of the html elements
 COUNTRY_ID    = 'country'
 CITY_ID       = 'city'
@@ -37,10 +45,13 @@ PHONE_ID      = 'phone'
 PHONES_DIV_ID = 'phonesdiv'
 
 def get_select(el_id, options, value, f = None, target = None, sources = None, clear_target = None):
-    try:
-        opts     = [OPTION(v, _value=k) for k, v in options.items()]
-    except:
-        opts     = [OPTION(v, _value=v) for v in options]
+    if options:
+        try:
+            opts     = [OPTION(v, _value=k) for k, v in options.items()]
+        except:
+            opts     = [OPTION(v, _value=v) for v in options]
+    else:
+        opts = []
     opts.append(OPTION(UNSELECTED_TEXT, _value=UNSELECTED_ID))
     if f != None:
         sources  = ["'%s'" % source for source in sources]
@@ -68,11 +79,11 @@ def phones_select(phones, selected_phone = None):
     return get_select(value = selected_phone, options = phones, el_id = PHONE_ID)
 
 def index():
-    selected_country = 'ES'
-    cities           = map_countries_to_cities[selected_country]
-    selected_city    = cities.keys()[0] # TODO: this is not deterministic
-    phones           = map_countries_cities_to_tels[(selected_country, selected_city)]
-    selected_phone   = phones[0]
+    selected_country = None
+    cities           = Data().get_cities(selected_country)
+    selected_city    = None
+    phones           = Data().get_phones(selected_country, selected_city)
+    selected_phone   = None
     form = FORM(countries_select(countries, selected_country),
                 DIV(cities_select(cities, selected_city), _id=CITIES_DIV_ID),
                 DIV(phones_select(phones, selected_phone), _id=PHONES_DIV_ID)
@@ -80,12 +91,9 @@ def index():
     return dict(form = form)
 
 def get_cities():
-    cities = map_countries_to_cities[request.vars.country]
+    cities = Data().get_cities(request.vars.country)
     return cities_select(cities).xml()
 
 def get_tels():
-    country = request.vars.country
-    city    = request.vars.city
-    key     = (country, city)
-    phones  = map_countries_cities_to_tels[key]
+    phones = Data().get_phones(request.vars.country, request.vars.city)
     return phones_select(phones).xml()
