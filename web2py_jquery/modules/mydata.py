@@ -35,5 +35,6 @@ class Data:
         return map_countries_to_cities.get(country)
 
     def get_phones(self, country, city):
+        log.error('Getting phones for country %s and city %s' % (country, city))
         return map_countries_cities_to_tels.get((country, city))
 

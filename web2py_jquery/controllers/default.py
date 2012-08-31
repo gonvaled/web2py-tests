@@ -1,11 +1,12 @@
 from mydata import Data
 
 # The ids of the html elements
-COUNTRY_ID    = 'country'
-CITY_ID       = 'city'
-CITIES_DIV_ID = 'citiesdiv'
-PHONE_ID      = 'phone'
-PHONES_DIV_ID = 'phonesdiv'
+HTML_ID_PREFIX = 'aaa'
+COUNTRY_ID     = HTML_ID_PREFIX + 'telcountry'
+CITY_ID        = HTML_ID_PREFIX + 'telcity'
+CITIES_DIV_ID  = HTML_ID_PREFIX + 'telcitiesdiv'
+PHONE_ID       = HTML_ID_PREFIX + 'telphone'
+PHONES_DIV_ID  = HTML_ID_PREFIX + 'telphonesdiv'
 
 # Unselected entry
 UNSELECTED_ID   = '__unselected__'
@@ -59,9 +60,10 @@ def index():
     return dict(form = form)
 
 def get_cities():
-    cities = Data().get_cities(request.vars.country)
+    cities = Data().get_cities(request.vars[COUNTRY_ID])
     return cities_select(cities).xml()
 
 def get_tels():
-    phones = Data().get_phones(request.vars.country, request.vars.city)
+    phones = Data().get_phones(request.vars[COUNTRY_ID], request.vars[CITY_ID])
     return phones_select(phones).xml()
+
