@@ -1,41 +1,4 @@
-#coding: utf8
-
-UNSELECTED_ID   = '__unselected__'
-UNSELECTED_TEXT = T('Please select')
-
-countries = {
-    'DE': 'Germany',
-    'ES': 'Spain',
-}
-
-MAD_ID = 'MAD'
-BCN_ID = 'BCN'
-CAC_ID = 'CAC'
-BER_ID = 'BER'
-DUS_ID = 'DUS'
-MUN_ID = 'MUN'
-
-map_countries_to_cities = {
-    'ES': { MAD_ID: 'Madrid',  BCN_ID: 'Barcelona',   CAC_ID: u'Cáceres'},
-    'DE': { BER_ID: 'Berlin',  DUS_ID: u'Düsseldorf', MUN_ID: u'München'},
-}
-
-map_countries_cities_to_tels = {
-    ('ES', MAD_ID) : [ '+3491423432', '+34913223432' ],
-    ('ES', BCN_ID) : [ '+3493423432', '+34933223432' ],
-    ('ES', CAC_ID) : [ '+3497423432', '+34973223432' ],
-    ('DE', BER_ID) : [ '+4991423432', '+49913223432' ],
-    ('DE', DUS_ID) : [ '+4993423432', '+49933223432' ],
-    ('DE', MUN_ID) : [ '+4997423432', '+49973223432' ],
-    }
-
-class Data:
-
-    def get_cities(self, country):
-        return map_countries_to_cities.get(country)
-
-    def get_phones(self, country, city):
-        return map_countries_cities_to_tels.get((country, city))
+from mydata import Data
 
 # The ids of the html elements
 COUNTRY_ID    = 'country'
@@ -43,6 +6,10 @@ CITY_ID       = 'city'
 CITIES_DIV_ID = 'citiesdiv'
 PHONE_ID      = 'phone'
 PHONES_DIV_ID = 'phonesdiv'
+
+# Unselected entry
+UNSELECTED_ID   = '__unselected__'
+UNSELECTED_TEXT = T('Please select')
 
 def get_select(el_id, options, value, f = None, target = None, sources = None, clear_target = None):
     if options:
@@ -79,6 +46,7 @@ def phones_select(phones, selected_phone = None):
     return get_select(value = selected_phone, options = phones, el_id = PHONE_ID)
 
 def index():
+    countries        = Data().get_countries()
     selected_country = None
     cities           = Data().get_cities(selected_country)
     selected_city    = None
